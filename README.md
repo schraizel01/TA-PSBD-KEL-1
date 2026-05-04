@@ -9,72 +9,209 @@
   <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js">
 </p>
 
-Aplikasi web internal untuk mengelola penyewaan konsol PlayStation di kawasan UNDIP Tembalang.  
-Mencakup manajemen meja, reservasi pelanggan, pembayaran tunai (COD), serta dashboard analitik interaktif.
+Aplikasi web untuk mengelola penyewaan konsol PlayStation di kawasan UNDIP Tembalang, mendukung **dua aktor** (Admin & Customer) dengan hak akses terpisah. Dilengkapi dashboard analitik, validasi bentrok jadwal, serta mekanisme soft delete.
 
 ---
 
 ## Daftar Isi
 - [Fitur Utama](#fitur-utama)
-- [Tampilan Antarmuka](#tampilan-antarmuka)
+- [Aktor & Batasan Akses](#aktor--batasan-akses)
+- [Entity Relationship Diagram (ERD) & Skema Database](#entity-relationship-diagram-erd--skema-database)
+- [DDL SQL – Struktur Tabel Lengkap](#ddl-sql--struktur-tabel-lengkap)
 - [Tech Stack](#tech-stack)
-- [Persyaratan Sistem](#persyaratan-sistem)
-- [Instalasi dan Menjalankan](#instalasi-dan-menjalankan)
-- [Konfigurasi Environment](#konfigurasi-environment)
+- [Instalasi & Menjalankan Lokal](#instalasi--menjalankan-lokal)
 - [Struktur Proyek](#struktur-proyek)
+- [Konfigurasi Environment Variables](#konfigurasi-environment-variables)
+- [Deploy ke Vercel](#deploy-ke-vercel)
 - [Alur Penggunaan](#alur-penggunaan)
 
 ---
 
 ## Fitur Utama
 
-| Modul             | Deskripsi                                                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Autentikasi**   | Login dan registrasi admin (halaman seeding pertama). Password di-hash dengan bcryptjs.                                    |
-| **Dashboard**     | Statistik ringkas (total pelanggan, durasi rata-rata, pendapatan, meja aktif) dan grafik tren reservasi & konsol terlaris. |
-| **Manajemen Meja**| CRUD meja PlayStation. Tersedia soft‑delete (pindah ke Recycle Bin) serta restore dan hapus permanen.                     |
-| **Manajemen Reservasi** | Pencatatan pelanggan (auto‑create jika baru), pemesanan meja, durasi, biaya otomatis (Rp 25.000/jam). Filter dinamis berdasarkan nama, tanggal, status pembayaran. |
-| **Konfirmasi Pembayaran** | Ubah status pembayaran dari "Unpaid" menjadi "Paid" (pembayaran tunai langsung).                                         |
-| **Recycle Bin**   | Lihat data meja dan reservasi yang dihapus sementara, dengan opsi pemulihan atau penghapusan permanen.                     |
-| **Keamanan**      | Session‑based authentication. Middleware memastikan hanya admin yang sudah login dapat mengakses panel.                    |
+| Modul                 | Admin | Customer |
+| --------------------- | :---: | :------: |
+| Autentikasi & Registrasi | Admin & registrasi admin khusus | Registrasi mandiri |
+| Dashboard Analitik    | Ya (statistik, grafik) | Tidak |
+| Kelola Meja (CRUD)    | Ya (soft/hard delete, restore) | Tidak |
+| Lihat Meja Tersedia   | Ya | Ya |
+| Buat Reservasi        | Ya (manual) | Ya (untuk diri sendiri) |
+| Riwayat Reservasi     | Seluruh data | Hanya milik sendiri |
+| Konfirmasi Pembayaran | Ya | Tidak |
+| Recycle Bin           | Ya (meja & reservasi) | Tidak |
+| Pencarian & Filter    | Ya (nama, tanggal, status) | Tidak |
+
+**Keunggulan Teknis**
+- Status meja **dinamis real-time** berdasarkan reservasi aktif.
+- Validasi **bentrok jadwal** saat membuat reservasi.
+- Soft delete & hard delete untuk menjaga integritas data.
+- Session-based authentication dengan pemisahan role.
 
 ---
 
-## Tampilan Antarmuka
+## Aktor & Batasan Akses
 
-- **Dashboard** – Info jam operasional, lokasi, fasilitas, kartu statistik, dan dua chart (line & doughnut).
-- **Halaman Meja** – Tabel dengan ikon status, modal edit, konfirmasi hapus dengan SweetAlert2.
-- **Halaman Reservasi** – Tabel reservasi lengkap, filter canggih, modal form pemesanan, auto‑kalkulasi biaya.
-- **Recycle Bin** – Daftar item yang dihapus lengkap dengan tombol restore dan hapus permanen.
+| Aktor     | Peran | Batasan |
+|-----------|-------|---------|
+| **Admin** | Mengelola data master, seluruh reservasi, konfirmasi pembayaran, melihat dashboard dan laporan. | Tidak dapat membuat reservasi atas nama pelanggan lain dengan akun customer (hanya reservasi manual). |
+| **Customer** | Melihat meja tersedia, membuat reservasi, melihat riwayat sendiri. | Tidak dapat mengubah data meja, tidak dapat melihat atau mengubah reservasi lain, tidak bisa mengakses panel admin. |
+
+---
+
+## Entity Relationship Diagram (ERD) & Skema Database
+
+Sistem menggunakan enam tabel ternormalisasi dengan autentikasi terpusat di `users`. Setiap aktor memiliki profil terpisah (`admins`, `customers`) yang terhubung one-to-one ke `users`.
+
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        varchar email UK
+        varchar password
+        varchar role
+        timestamp created_at
+    }
+
+    ADMINS {
+        int id PK
+        varchar username UK
+        varchar password
+        int user_id FK UK
+        timestamp created_at
+    }
+
+    CUSTOMERS {
+        int id PK
+        varchar name
+        varchar phone
+        int user_id FK UK
+        timestamp created_at
+    }
+
+    TABLES {
+        int id PK
+        varchar table_number UK
+        varchar status
+        timestamp created_at
+        timestamp deleted_at
+    }
+
+    RESERVATIONS {
+        int id PK
+        int customer_id FK
+        int table_id FK
+        date reservation_date
+        time start_time
+        int duration
+        timestamp created_at
+        timestamp deleted_at
+    }
+
+    PAYMENTS {
+        int id PK
+        int reservation_id FK UK
+        int amount
+        varchar status
+        timestamp created_at
+    }
+
+    USERS ||--o| ADMINS : "profil"
+    USERS ||--o| CUSTOMERS : "profil"
+    CUSTOMERS ||--o{ RESERVATIONS : "melakukan"
+    TABLES ||--o{ RESERVATIONS : "dipesan"
+    RESERVATIONS ||--|| PAYMENTS : "memiliki"
+```
+
+**Kardinalitas Relasi**
+- `users` ke `admins` : **one-to-one** (unique constraint on `user_id`).
+- `users` ke `customers` : **one-to-one**.
+- `customers` ke `reservations` : **one-to-many**.
+- `tables` ke `reservations` : **one-to-many**.
+- `reservations` ke `payments` : **one-to-one** (unique constraint on `reservation_id`).
+
+---
+
+## DDL SQL – Struktur Tabel Lengkap
+
+Jalankan perintah berikut di SQL Editor PostgreSQL (Neon) untuk membangun database dari awal.
+
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'customer',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE admins (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tables (
+    id SERIAL PRIMARY KEY,
+    table_number VARCHAR(50) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT 'Available',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
+);
+
+CREATE TABLE reservations (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE RESTRICT,
+    reservation_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    duration INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
+);
+
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    reservation_id INTEGER UNIQUE NOT NULL REFERENCES reservations(id) ON DELETE CASCADE,
+    amount INTEGER NOT NULL,
+    status VARCHAR(50) DEFAULT 'Unpaid',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_reservations_table_date ON reservations(table_id, reservation_date);
+CREATE INDEX idx_reservations_customer ON reservations(customer_id);
+```
 
 ---
 
 ## Tech Stack
 
-| Layer        | Teknologi                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **Backend**  | [![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org) [![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)](https://expressjs.com) |
-| **Database** | [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)](https://www.postgresql.org) |
-| **Frontend** | [![EJS](https://img.shields.io/badge/EJS-B4CA65?logo=ejs&logoColor=white)](https://ejs.co) [![Bootstrap 5](https://img.shields.io/badge/Bootstrap-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com) [![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?logo=chartdotjs&logoColor=white)](https://www.chartjs.org) |
-| **Library Tambahan** | bcryptjs, dotenv, express‑session, pg, SweetAlert2, Font Awesome 6                                       |
+| Layer        | Teknologi |
+| ------------ | --------- |
+| **Backend**  | Node.js, Express 5 |
+| **Database** | PostgreSQL (Neon) |
+| **Frontend** | EJS, Bootstrap 5, Chart.js |
+| **Library**  | dotenv, express-session, pg, SweetAlert2, Font Awesome 6 |
 
 ---
 
-## Persyaratan Sistem
+## Instalasi & Menjalankan Lokal
 
-- **Node.js** versi 18 atau lebih baru (sesuai dependensi Express 5).
-- **PostgreSQL** minimal versi 12.
-- **npm** (biasanya dibundel dengan Node.js).
-
----
-
-## Instalasi dan Menjalankan
-
-1. **Clone repositori**
+1. **Clone repository**
 
    ```bash
-   git clone https://github.com/username/sistem-rental-ps.git
-   cd sistem-rental-ps
+   git clone https://github.com/Drazeksja/Sistem-Rental-Playstation-.git
+   cd Sistem-Rental-Playstation-
+   ```
 
 2. **Install dependensi**
 
@@ -82,12 +219,9 @@ Mencakup manajemen meja, reservasi pelanggan, pembayaran tunai (COD), serta dash
    npm install
    ```
 
-3. **Buat database PostgreSQL**
+3. **Buat database** menggunakan skrip DDL di atas (jalankan di SQL Editor Neon atau pgAdmin).
 
-   - Buat database baru (misal `rental_ps`).
-   - Jalankan skrip SQL yang disediakan (jika ada) atau buat struktur tabel sesuai kebutuhan (tabel `admins`, `tables`, `customers`, `reservations`, `payments`).
-
-4. **Konfigurasi file `.env`** (lihat [Konfigurasi Environment](#konfigurasi-environment)).
+4. **Konfigurasi `.env`** (lihat bagian Environment Variables).
 
 5. **Jalankan server**
 
@@ -95,26 +229,7 @@ Mencakup manajemen meja, reservasi pelanggan, pembayaran tunai (COD), serta dash
    node server.js
    ```
 
-   Server akan berjalan di `http://localhost:9000` (atau port yang ditentukan di `.env`).
-
-6. **Buat akun admin pertama**
-
-   Kunjungi `http://localhost:9000/auth/register` untuk membuat akun, lalu login di `/auth/login`.
-
----
-
-## Konfigurasi Environment
-
-Buat file `.env` di root proyek dengan isi:
-
-```env
-PORT=9000
-DATABASE_URL=postgresql://user:password@localhost:5432/rental_ps
-SESSION_SECRET=rahasia_super_kuat
-```
-
-- `DATABASE_URL` – string koneksi PostgreSQL.
-- `SESSION_SECRET` – kunci acak untuk mengamankan session.
+   Buka `http://localhost:9001` (atau port yang diatur di `.env`).
 
 ---
 
@@ -123,38 +238,87 @@ SESSION_SECRET=rahasia_super_kuat
 ```
 .
 ├── controllers/
+│   ├── adminController.js
 │   ├── authController.js
-│   └── adminController.js
+│   └── customerController.js
 ├── middleware/
 │   └── auth.js
 ├── routes/
+│   ├── adminRoutes.js
 │   ├── authRoutes.js
-│   └── adminRoutes.js
+│   └── customerRoutes.js
 ├── views/
-│   ├── dashboard.ejs
+│   ├── auth/
+│   │   ├── login.ejs
+│   │   ├── register.ejs
+│   │   └── register-admin.ejs
+│   ├── customer/
+│   │   ├── dashboard.ejs
+│   │   ├── reservations.ejs
+│   │   └── tables.ejs
 │   ├── layout/
 │   │   ├── header.ejs
 │   │   └── footer.ejs
+│   ├── reservations/
+│   │   ├── index.ejs
+│   │   └── trash.ejs
 │   ├── tables/
 │   │   ├── index.ejs
 │   │   └── trash.ejs
-│   └── reservations/
-│       ├── index.ejs
-│       └── trash.ejs
-├
+│   └── dashboard.ejs
 ├── db.js
 ├── server.js
 ├── package.json
-├── .env.example
+├── .env
+├── .gitignore
+├── vercel.json
 └── README.md
 ```
 
 ---
 
+## Konfigurasi Environment Variables
+
+Buat file `.env` di root proyek (lokal) dan isi dengan:
+```env
+PORT=9001
+DATABASE_URL=postgresql://user:password@ep-...neon.tech/neondb?sslmode=require
+SESSION_SECRET=kunci_acak_anda
+```
+
+- `DATABASE_URL` – string koneksi PostgreSQL dari Neon.
+- `SESSION_SECRET` – kunci acak untuk enkripsi session.
+
+**Jangan commit file `.env`!** Sudah tercantum di `.gitignore`.
+
+---
+
+## Deploy ke Vercel
+
+1. Push proyek ke GitHub.
+2. Import proyek di Vercel.
+3. Tambahkan environment variables `DATABASE_URL` dan `SESSION_SECRET` di pengaturan Vercel.
+4. Deploy – `vercel.json` sudah siap digunakan.
+
+Setiap kali mengubah environment di Vercel, lakukan **Redeploy** agar perubahan diterapkan.
+
+---
+
 ## Alur Penggunaan
 
-1. **Admin login** melalui `/auth/login`.
-2. Dapat melihat **Dashboard** untuk memantau performa rental.
-3. **Kelola Meja** – menambah, mengedit, menghapus (soft‑delete), dan mengelola Recycle Bin.
-4. **Kelola Reservasi** – menambah reservasi baru (auto‑input pelanggan), mengonfirmasi pembayaran, mengarsipkan reservasi yang batal, serta memfilter data.
-5. **Recycle Bin** – mengembalikan atau menghapus permanen data yang telah dihapus.
+### Administrator
+1. Login di `/auth/login` menggunakan email & password admin.
+2. Dashboard menampilkan statistik, grafik tren reservasi, dan konsol terlaris.
+3. Kelola meja di `/admin/tables` (CRUD, soft/hard delete).
+4. Kelola reservasi di `/admin/reservations` (filter, konfirmasi pembayaran, arsipkan).
+5. Recycle Bin dapat diakses dari menu untuk pemulihan data.
+
+### Customer
+1. Registrasi di `/auth/register` (nama, telepon, email, password).
+2. Login, otomatis masuk ke dashboard customer.
+3. Lihat meja tersedia di `/customer/tables` (status real-time).
+4. Buat reservasi di `/customer/reservations` – pilih meja, tanggal, jam, durasi (biaya Rp 25.000/jam), sistem menolak bentrok jadwal.
+5. Riwayat reservasi hanya menampilkan data pribadi dan status pembayaran.
+```
+
+Simpan perubahan ini, lalu commit dan push. README kini mencerminkan seluruh struktur terbaru termasuk skema database lengkap.
