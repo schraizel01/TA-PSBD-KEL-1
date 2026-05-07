@@ -25,7 +25,7 @@ Aplikasi web untuk mengelola penyewaan konsol PlayStation di kawasan UNDIP Temba
 - [Deploy ke Vercel](#deploy-ke-vercel)
 - [Alur Penggunaan](#alur-penggunaan)
 
----
+----
 
 ## Fitur Utama
 
