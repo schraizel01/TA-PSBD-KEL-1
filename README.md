@@ -14,7 +14,7 @@ Aplikasi web untuk mengelola penyewaan konsol PlayStation di kawasan UNDIP Temba
 -----
 
 ## Daftar Isi
-- [Fitur Utama](#fitur-utama)
+- [Fitur Utama](#fitur-utama-sistem)
 - [Aktor & Batasan Akses](#aktor--batasan-akses)
 - [Skema Database](#skema-database)
 - [DDL SQL – Struktur Tabel Lengkap](#ddl-sql--struktur-tabel-lengkap)
