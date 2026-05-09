@@ -37,32 +37,32 @@
                 </thead>
                 <tbody>
                     <% tables.forEach((t, index) => { %>
-                    <tr>
-                        <td class="ps-4 text-muted fw-bold"><%= index + 1 %></td>
-                        <td>
+                    <tr style="background:#0d1b2e !important;">
+                        <td class="ps-4 fw-bold" style="background:#0d1b2e !important; color:#7a99bb !important;"><%= index + 1 %></td>
+                        <td style="background:#0d1b2e !important;">
                             <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <div style="width:40px;height:40px;border-radius:8px;background:rgba(0,240,255,0.08);border:1px solid rgba(0,240,255,0.2);color:#00f0ff;display:flex;align-items:center;justify-content:center;margin-right:12px;box-shadow:0 0 10px rgba(0,240,255,0.12);">
                                     <i class="fa-solid fa-gamepad"></i>
                                 </div>
-                                <span class="fw-semibold"><%= t.table_number %></span>
+                                <span class="fw-semibold" style="color:#e2f0ff;"><%= t.table_number %></span>
                             </div>
                         </td>
-                        <td>
+                        <td style="background:#0d1b2e !important;">
                             <% if (t.status === 'Available') { %>
-                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                <span class="badge px-3 py-2" style="background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.25);border-radius:4px;font-weight:600;">
                                     <i class="fa-solid fa-circle-check me-1"></i> Tersedia
                                 </span>
                             <% } else if (t.status === 'In Use') { %>
-                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">
+                                <span class="badge px-3 py-2" style="background:rgba(255,69,96,0.08);color:#ff4560;border:1px solid rgba(255,69,96,0.25);border-radius:4px;font-weight:600;">
                                     <i class="fa-solid fa-circle-play me-1"></i> Sedang Dipakai
                                 </span>
                             <% } else { %>
-                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                <span class="badge px-3 py-2" style="background:rgba(255,208,0,0.08);color:#ffd000;border:1px solid rgba(255,208,0,0.25);border-radius:4px;font-weight:600;">
                                     <i class="fa-solid fa-wrench me-1"></i> Maintenance
                                 </span>
                             <% } %>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="background:#0d1b2e !important;">
                             <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTableModal<%= t.id %>">
                                 <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                             </button>
@@ -117,7 +117,7 @@
         <% } %>
     </div>
     <% if (tables.length > 0) { %>
-    <div class="card-footer bg-white text-muted small py-3 px-4">
+    <div class="card-footer text-muted small py-3 px-4">
         <i class="fa-solid fa-circle-info me-1"></i> Total: <strong><%= tables.length %></strong> meja terdaftar
     </div>
     <% } %>
@@ -149,5 +149,56 @@
         </div>
     </div>
 </div>
+
+<style>
+/* CARD wrapper */
+.card {
+    background: #0a1628 !important;
+    border: 1px solid rgba(0,240,255,0.15) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 30px rgba(0,180,255,0.08), inset 0 1px 0 rgba(0,240,255,0.07) !important;
+    overflow: hidden;
+}
+
+/* Glowing top border */
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+    opacity: 0.4;
+}
+
+.card-footer {
+    background: rgba(0,0,0,0.3) !important;
+    border-top: 1px solid rgba(255,255,255,0.05) !important;
+    color: #7a99bb !important;
+}
+
+/* THEAD */
+.table thead tr,
+.table thead tr.bg-light,
+.table > thead > tr > th {
+    background: rgba(0,240,255,0.05) !important;
+    color: #00f0ff !important;
+    border-bottom: 1px solid rgba(0,240,255,0.15) !important;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+/* Hover row */
+.table-hover > tbody > tr:hover > td {
+    background: #112240 !important;
+    box-shadow: inset 3px 0 0 #00f0ff !important;
+}
+
+/* BORDER antar row */
+.table > tbody > tr > td {
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+</style>
 
 <%- include('../layout/footer') %>
