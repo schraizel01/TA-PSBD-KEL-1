@@ -3,7 +3,9 @@
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1"><i class="fa-solid fa-tv text-primary me-2"></i>Manajemen Meja PlayStation</h3>
+        <h3 class="fw-bold mb-1">
+            <i class="fa-solid fa-tv text-accent me-2"></i>Manajemen Meja PlayStation
+        </h3>
         <p class="text-muted mb-0">Kelola semua unit meja PS yang tersedia</p>
     </div>
     <div class="d-flex gap-2">
@@ -18,7 +20,7 @@
 
 <!-- Tabel Data Meja -->
 <div class="card shadow-sm border-0">
-    <div class="card-body p-0">
+    <div class="card p-0">
         <% if (tables.length === 0) { %>
             <div class="text-center py-5">
                 <i class="fa-solid fa-inbox text-muted" style="font-size: 3rem;"></i>
@@ -28,46 +30,45 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
-                    <tr class="bg-light">
+                    <tr>
                         <th class="ps-4" style="width: 60px;">No</th>
-                        <th><i class="fa-solid fa-hashtag text-muted me-1"></i> Kode Meja</th>
-                        <th><i class="fa-solid fa-circle-info text-muted me-1"></i> Status</th>
-                        <th class="text-center" style="width: 220px;"><i class="fa-solid fa-gear text-muted me-1"></i> Aksi</th>
+                        <th>Kode Meja</th>
+                        <th>Status</th>
+                        <th class="text-center" style="width: 220px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% tables.forEach((t, index) => { %>
-                    <tr style="background:#0d1b2e !important;">
-                        <td class="ps-4 fw-bold" style="background:#0d1b2e !important; color:#7a99bb !important;"><%= index + 1 %></td>
-                        <td style="background:#0d1b2e !important;">
+                    <tr>
+                        <td class="ps-4 text-muted fw-bold"><%= index + 1 %></td>
+                        <td>
                             <div class="d-flex align-items-center">
-                                <div style="width:40px;height:40px;border-radius:8px;background:rgba(0,240,255,0.08);border:1px solid rgba(0,240,255,0.2);color:#00f0ff;display:flex;align-items:center;justify-content:center;margin-right:12px;box-shadow:0 0 10px rgba(0,240,255,0.12);">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                                     <i class="fa-solid fa-gamepad"></i>
                                 </div>
-                                <span class="fw-semibold" style="color:#e2f0ff;"><%= t.table_number %></span>
+                                <span style="color:#e6e9f2!important;font-weight:600;"><%= t.table_number %></span>
                             </div>
                         </td>
-                        <td style="background:#0d1b2e !important;">
+                        <td>
                             <% if (t.status === 'Available') { %>
-                                <span class="badge px-3 py-2" style="background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.25);border-radius:4px;font-weight:600;">
+                                <span class="badge badge-cyber px-3 py-2">
                                     <i class="fa-solid fa-circle-check me-1"></i> Tersedia
                                 </span>
                             <% } else if (t.status === 'In Use') { %>
-                                <span class="badge px-3 py-2" style="background:rgba(255,69,96,0.08);color:#ff4560;border:1px solid rgba(255,69,96,0.25);border-radius:4px;font-weight:600;">
+                                <span class="badge badge-danger-cyber px-3 py-2">
                                     <i class="fa-solid fa-circle-play me-1"></i> Sedang Dipakai
                                 </span>
                             <% } else { %>
-                                <span class="badge px-3 py-2" style="background:rgba(255,208,0,0.08);color:#ffd000;border:1px solid rgba(255,208,0,0.25);border-radius:4px;font-weight:600;">
+                                <span class="badge badge-warning-cyber px-3 py-2">
                                     <i class="fa-solid fa-wrench me-1"></i> Maintenance
                                 </span>
                             <% } %>
                         </td>
-                        <td class="text-center" style="background:#0d1b2e !important;">
+                        <td class="text-center">
                             <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editTableModal<%= t.id %>">
                                 <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                             </button>
-                            <form action="/admin/tables/delete/<%= t.id %>" method="POST" class="d-inline"
-                                  onsubmit="confirmAction(event, 'Hapus Meja?', 'Meja akan dipindahkan ke Recycle Bin.', this, 'Ya, Hapus!', '#dc3545')">
+                            <form action="/admin/tables/delete/<%= t.id %>" method="POST" class="d-inline">
                                 <button class="btn btn-sm btn-outline-danger">
                                     <i class="fa-solid fa-trash me-1"></i> Hapus
                                 </button>
@@ -75,75 +76,63 @@
                         </td>
                     </tr>
 
-                    <!-- Modal Edit Meja -->
+                    <!-- Modal Edit -->
                     <div class="modal fade" id="editTableModal<%= t.id %>" tabindex="-1">
                         <div class="modal-dialog">
-                            <div class="modal-content border-0 shadow">
-                                <div class="modal-header bg-primary bg-opacity-10">
-                                    <h5 class="modal-title text-primary fw-bold">
-                                        <i class="fa-solid fa-pen-to-square me-2"></i>Edit Meja <%= t.table_number %>
+                            <div class="modal-content modal-cyber border-0 shadow">
+                                <div class="modal-header">
+                                    <h5 class="modal-title text-accent fw-bold">
+                                        Edit Meja <%= t.table_number %>
                                     </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                 </div>
                                 <form action="/admin/tables/update/<%= t.id %>" method="POST">
                                     <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-semibold">Nomor / Kode Meja</label>
-                                            <input type="text" name="table_number" class="form-control" value="<%= t.table_number %>" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-semibold">Status</label>
-                                            <select name="status" class="form-select">
-                                                <option value="Available" <%= t.status === 'Available' ? 'selected' : '' %>>✅ Available</option>
-                                                <option value="In Use" <%= t.status === 'In Use' ? 'selected' : '' %>>🎮 In Use</option>
-                                                <option value="Maintenance" <%= t.status === 'Maintenance' ? 'selected' : '' %>>🔧 Maintenance</option>
-                                            </select>
-                                        </div>
+                                        <input type="text" name="table_number" class="form-control mb-3" value="<%= t.table_number %>">
+                                        <select name="status" class="form-select">
+                                            <option value="Available">Available</option>
+                                            <option value="In Use">In Use</option>
+                                            <option value="Maintenance">Maintenance</option>
+                                        </select>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan
-                                        </button>
+                                        <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                        <button class="btn btn-primary">Simpan</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
+
                     <% }) %>
                 </tbody>
             </table>
         </div>
         <% } %>
     </div>
+
     <% if (tables.length > 0) { %>
     <div class="card-footer text-muted small py-3 px-4">
-        <i class="fa-solid fa-circle-info me-1"></i> Total: <strong><%= tables.length %></strong> meja terdaftar
+        Total: <strong><%= tables.length %></strong> meja
     </div>
     <% } %>
 </div>
 
-<!-- Modal Tambah Meja -->
-<div class="modal fade" id="addTableModal" tabindex="-1">
+<!-- Modal Tambah -->
+<div class="modal fade" id="addTableModal">
     <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus me-2"></i>Tambah Meja Baru</h5>
+        <div class="modal-content modal-cyber border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-accent">Tambah Meja</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="/admin/tables" method="POST">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Nomor / Kode Meja</label>
-                        <input type="text" name="table_number" class="form-control form-control-lg" placeholder="Contoh: PS5-01" required>
-                        <div class="form-text">Gunakan format: <code>PS5-01</code>, <code>PS4-02</code>, dll.</div>
-                    </div>
+                    <input type="text" name="table_number" class="form-control form-control-lg" placeholder="PS5-01" required>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Simpan
-                    </button>
+                    <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary">Simpan</button>
                 </div>
             </form>
         </div>
@@ -151,54 +140,45 @@
 </div>
 
 <style>
-/* CARD wrapper */
-.card {
-    background: #0a1628 !important;
-    border: 1px solid rgba(0,240,255,0.15) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 30px rgba(0,180,255,0.08), inset 0 1px 0 rgba(0,240,255,0.07) !important;
-    overflow: hidden;
-}
-
-/* Glowing top border */
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 10%; right: 10%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #00f0ff, transparent);
-    opacity: 0.4;
-}
-
-.card-footer {
-    background: rgba(0,0,0,0.3) !important;
-    border-top: 1px solid rgba(255,255,255,0.05) !important;
-    color: #7a99bb !important;
-}
-
-/* THEAD */
-.table thead tr,
-.table thead tr.bg-light,
-.table > thead > tr > th {
-    background: rgba(0,240,255,0.05) !important;
-    color: #00f0ff !important;
-    border-bottom: 1px solid rgba(0,240,255,0.15) !important;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-}
-
-/* Hover row */
-.table-hover > tbody > tr:hover > td {
-    background: #112240 !important;
-    box-shadow: inset 3px 0 0 #00f0ff !important;
-}
-
-/* BORDER antar row */
-.table > tbody > tr > td {
-    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
-}
+body { background: #0b0f1a !important; color: #e6e9f2 !important; }
+.card { background: rgba(20,26,45,0.95) !important; border: 1px solid rgba(255,255,255,0.06) !important; color: #e6e9f2 !important; }
+.table { color: #e6e9f2 !important; background-color: transparent !important; }
+.table th, .table td { background-color: transparent !important; color: #e6e9f2 !important; border-color: rgba(255,255,255,0.06) !important; }
+.table thead th { color: #9aa4c0 !important; }
+.table-responsive { background: transparent !important; }
+.text-muted { color: #9aa4c0 !important; }
+.text-primary { color: #7dd3fc !important; }
+.text-accent { color: #7dd3fc !important; }
+.btn-primary { background: #38bdf8 !important; border-color: #38bdf8 !important; color: #0b0f1a !important; }
+.btn-outline-primary { color: #38bdf8 !important; border-color: #38bdf8 !important; }
+.btn-outline-secondary { color: #9aa4c0 !important; border-color: #4a5568 !important; }
+.bg-primary { background: rgba(56,189,248,0.15) !important; color: #38bdf8 !important; }
+.modal-content { background: #111827 !important; color: #e6e9f2 !important; }
+.modal-header { border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
+.modal-footer { border-top: 1px solid rgba(255,255,255,0.08) !important; }
+.form-control, .form-select { background: #1e2535 !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #e6e9f2 !important; }
+.card-footer { background: rgba(255,255,255,0.02) !important; border-top: 1px solid rgba(255,255,255,0.06) !important; color: #9aa4c0 !important; }
+.badge-cyber { background: rgba(34,197,94,0.15) !important; color: #22c55e !important; border: 1px solid rgba(34,197,94,0.25) !important; }
+.badge-danger-cyber { background: rgba(239,68,68,0.15) !important; color: #ef4444 !important; border: 1px solid rgba(239,68,68,0.25) !important; }
+.badge-warning-cyber { background: rgba(250,204,21,0.15) !important; color: #facc15 !important; border: 1px solid rgba(250,204,21,0.25) !important; }
 </style>
+
+<script>
+// Fix Bootstrap 5 --bs-table-bg via JS karena CSS !important tidak bisa override CSS variable
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.table, .table tr, .table td, .table th').forEach(el => {
+        el.style.setProperty('--bs-table-bg', 'transparent', 'important');
+        el.style.setProperty('--bs-table-color', '#e6e9f2', 'important');
+        el.style.setProperty('--bs-table-hover-bg', 'rgba(125,211,252,0.07)', 'important');
+        el.style.setProperty('--bs-table-border-color', 'rgba(255,255,255,0.06)', 'important');
+        el.style.backgroundColor = 'transparent';
+        el.style.color = '#e6e9f2';
+    });
+    // Fix khusus thead
+    document.querySelectorAll('.table thead th').forEach(el => {
+        el.style.color = '#9aa4c0';
+    });
+});
+</script>
 
 <%- include('../layout/footer') %>
